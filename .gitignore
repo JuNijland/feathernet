@@ -30,3 +30,5 @@
 
 # Debug files
 *.dSYM/
+
+.ycm_extra_conf.*

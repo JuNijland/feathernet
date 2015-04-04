@@ -6,14 +6,15 @@
 	#include <unistd.h>
 	#include <netinet/in.h>
 
-	#define OS_UNIX	1
+	#define OS_UNIX
 #elif defined(_WIN32) || defined(WIN32)
 	#include <winsock2.h>
 
-	#define OS_WINDOWS 1
+	#define OS_WINDOWS
 #endif
 
 #include <stdio.h>
+#include "transmit.h"
 
 #ifndef IPPROTO_TCP
 #define IPPROTO_TCP 0	
@@ -42,37 +43,23 @@ int create_serversock(int port)
 	}
 #endif
 	serversock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
-
-#ifdef OS_WINDOWS
-	if (serversock == INVALID_SOCKET) {
-		printf("ERROR: Failed to create a socket\n");
-		return -1;
-	}
-#elif OS_UNIX
 	if (serversock < 0) {
 		printf("ERROR: Failed to create a socket\n");
 		return -1;
 	}
-#endif
 
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 	server.sin_port = htons(port);
-#ifdef OS_WINDOWS
-	if (bind(serversock, (struct sockaddr *) &server,
-							sizeof(server)) == SOCKET_ERROR) {
-		printf("ERROR: Failed to bind a socket. ");
-		printf("Port already in use? err_code: %d\n", WSAGetLastError());
+
+    int bindsocket = 
+        bind(serversock, (struct sockaddr *) &server, sizeof(server));
+
+	if (bindsocket < 0) {
+		printf("ERROR: Failed to bind a socket.\n");
 		return -1;
 	}
-#elif OS_UNIX
-	if (bind(serversock, (struct sockaddr *) &server,
-							sizeof(server)) < 0) {
-		printf("ERROR: Failed to bind a socket. Port already in use?\n");
-		return -1;
-	}
-#endif
 	return serversock;
 } 
 
@@ -85,7 +72,8 @@ void delete_serversock(int sock)
 #ifdef OS_WINDOWS
 	closesocket(sock);
  	WSACleanup();
-#elif OS_UNIX
+#endif
+#ifdef OS_UNIX
 	close(sock);
 #endif
 }
@@ -110,34 +98,13 @@ int listen_serversock(int serversock, int max_clients, char *client_ip)
 		printf("ERROR: Failed to listen on serversocket\n");
 		return -1;
 	}
-
-#ifdef OS_WINDOWS
-	if ((clientsock =
-			 accept(serversock, (struct sockaddr *) &client,
-			 		&clientlen)) == INVALID_SOCKET) {
-			printf("ERROR: Failed to accept client connection. "); 
-			printf("Error code: %d\n", WSAGetLastError());
-			return -1;
-		}
-#elif OS_UNIX
-	if ((clientsock =
-			 accept(serversock, (struct sockaddr *) &client,
-			 		&clientlen)) < 0) {
-			printf("ERROR: Failed to accept client connection\n");
-			return -1;
-		}
-#endif
+    clientsock = accept(serversock, (struct sockaddr *) &client, &clientlen);
+	if (clientsock < 0) 
+    {
+        printf("ERROR: Failed to accept client connection.\n");
+        return -1;
+    }
 	client_ip = inet_ntoa(client.sin_addr);
 
 	return clientsock;
 }
-
-int main(int argc, char const *argv[])
-{
-	int sock = create_serversock(18290);
-	char client_ip[16];
-	int client = listen_serversock(sock, 10, client_ip);
-	return 0;
-}
-
-

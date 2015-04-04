@@ -6,11 +6,11 @@
 	#include <unistd.h>
 	#include <netinet/in.h>
 
-	#define OS_UNIX	1
+	#define OS_UNIX
 #elif defined(_WIN32) || defined(WIN32)
 	#include <winsock2.h>
 
-	#define OS_WINDOWS 1
+	#define OS_WINDOWS
 #endif
 
 #include <stdio.h>
@@ -44,32 +44,22 @@ int create_sock(char* ip_address, int port)
 #endif
 	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-#ifdef OS_WINDOWS
-	if (sock == INVALID_SOCKET) {
-		printf("ERROR: Failed to create a socket\n");
-		return -1;
-	}
-#elif OS_UNIX
 	if (sock < 0) {
 		printf("ERROR: Failed to create a socket\n");
 		return -1;
 	}
-#endif
 
 	memset(&serversock, 0, sizeof(serversock));
 	serversock.sin_family = AF_INET;
 	serversock.sin_addr.s_addr = inet_addr(ip_address);
 	serversock.sin_port = htons(port);
-
-	if (connect(sock,
-				(struct sockaddr *) &serversock,
-				sizeof(serversock)) < 0) {	
-		/* error */
+    int connected = 
+        connect(sock, (struct sockaddr *) &serversock, sizeof(serversock));
+	if (connected < 0) {	
 		printf("ERROR: Failed to connect with server %s:%d\n", 
 				ip_address, port);
 		return -1;
 	}
-
 	return sock;
 }
 
@@ -82,23 +72,8 @@ void delete_sock(int sock)
 #ifdef OS_WINDOWS
 	closesocket(sock);
  	WSACleanup();
-#elif OS_UNIX
+#endif
+#ifdef OS_UNIX
 	close(sock);
 #endif
-}
-
-int main(int argc, char *argv[])
-{
-	char *c = "95.211.234.42";
-	int port = 80;
-
-	int sock = create_sock(c, port);
-
-	char *msg = "GET / HTTP/1.1\r\n\r\n";
-	send_data(sock, msg);
-
-	char buf[2000];
-	receive_data(sock, buf, 2000);
-	printf("%s\n", buf);
-	return 0;
 }
