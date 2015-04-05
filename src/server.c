@@ -83,6 +83,7 @@ int listen_serversock(int serversock, int max_clients, char *client_ip)
 	int clientsock;
 	struct sockaddr_in client;
 	unsigned int clientlen = sizeof(client);
+    memset(&client, '\0', clientlen);
 
 	if (listen(serversock, max_clients) < 0) {
 #ifdef FEATHER_DEBUG
@@ -98,7 +99,7 @@ int listen_serversock(int serversock, int max_clients, char *client_ip)
 #endif
         return -1;
     }
-	client_ip = inet_ntoa(client.sin_addr);
+	strcpy(client_ip, inet_ntoa(client.sin_addr));
 
 	return clientsock;
 }

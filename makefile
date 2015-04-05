@@ -9,6 +9,12 @@ build: src/client.c src/close.c src/server.c src/transmit.c
 http_client: examples/http_client.c
 	$(CC) $(CFLAGS) -g -o build/http_client examples/http_client.c build/libfeathernet.a
 
+echo_client: examples/echo_client.c
+	$(CC) $(CFLAGS) -g -o build/echo_client examples/echo_client.c build/libfeathernet.a
+
+echo_server: examples/echo_server.c
+	$(CC) $(CFLAGS) -g -o build/echo_server examples/echo_server.c build/libfeathernet.a
+
 clean:
 	rm -f *~
 	rm -f #*#
