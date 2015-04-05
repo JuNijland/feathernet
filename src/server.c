@@ -21,13 +21,12 @@
 #endif
 
 /**
- * create_sock - Create a socket connection
- * @ip_address: The server's ip-address
- * @port: The port of the socket
+ * create_serversock - Create a server socket connection
+ * @port: The port of the socket to listen on
  * 
  * Returns the socket integer that you need as
  * a parameter to send and/or receive data
- * from the targeted server.
+ * to/from one or several clients.
  */
 int create_serversock(int port) 
 {
@@ -37,14 +36,18 @@ int create_serversock(int port)
 	WSADATA wsa;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to initialize Winsock2; err_code: %d\n",
 					 WSAGetLastError());
+#endif
 		return -1;
 	}
 #endif
 	serversock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (serversock < 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to create a socket\n");
+#endif
 		return -1;
 	}
 
@@ -57,26 +60,13 @@ int create_serversock(int port)
         bind(serversock, (struct sockaddr *) &server, sizeof(server));
 
 	if (bindsocket < 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to bind a socket.\n");
+#endif
 		return -1;
 	}
 	return serversock;
 } 
-
-/**
- * delete_serversock - Dispose the server socket
- * @sock: The socket that is getting deleted.
- */
-void delete_serversock(int sock)
-{
-#ifdef OS_WINDOWS
-	closesocket(sock);
- 	WSACleanup();
-#endif
-#ifdef OS_UNIX
-	close(sock);
-#endif
-}
 
 /**
  * listen_serversock - Listens for incoming connections
@@ -95,13 +85,17 @@ int listen_serversock(int serversock, int max_clients, char *client_ip)
 	unsigned int clientlen = sizeof(client);
 
 	if (listen(serversock, max_clients) < 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to listen on serversocket\n");
+#endif
 		return -1;
 	}
     clientsock = accept(serversock, (struct sockaddr *) &client, &clientlen);
 	if (clientsock < 0) 
     {
+#ifdef FEATHER_DEBUG
         printf("ERROR: Failed to accept client connection.\n");
+#endif
         return -1;
     }
 	client_ip = inet_ntoa(client.sin_addr);

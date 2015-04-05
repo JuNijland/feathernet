@@ -38,14 +38,18 @@ int create_sock(char* ip_address, int port)
 	WSADATA wsa;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to initialize Winsock2; err_code:%d\n", WSAGetLastError());
+#endif
 		return -1;
 	}
 #endif
 	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (sock < 0) {
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to create a socket\n");
+#endif
 		return -1;
 	}
 
@@ -56,24 +60,12 @@ int create_sock(char* ip_address, int port)
     int connected = 
         connect(sock, (struct sockaddr *) &serversock, sizeof(serversock));
 	if (connected < 0) {	
+#ifdef FEATHER_DEBUG
 		printf("ERROR: Failed to connect with server %s:%d\n", 
 				ip_address, port);
+#endif
 		return -1;
 	}
 	return sock;
 }
 
-/**
- * delete_sock - Removes the socket connection
- * @sock - Socket to delete
- */
-void delete_sock(int sock)
-{
-#ifdef OS_WINDOWS
-	closesocket(sock);
- 	WSACleanup();
-#endif
-#ifdef OS_UNIX
-	close(sock);
-#endif
-}
