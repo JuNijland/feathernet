@@ -10,6 +10,8 @@
 	#define OS_WINDOWS
 #endif
 
+#include "debug.h"
+
 /**
  * get_address - Get ip-adress by hostname
  * @hostname: The hostname of which you want to
@@ -19,16 +21,14 @@
  *
  * Returns -1 on failure or 0 on succes.
  */
-int get_ip(char *hostname, char *ip)
+int get_ip(const char *hostname, char *ip)
 {
     int i;
     struct hostent *he;
     struct in_addr **addr_list;
          
     if ((he = gethostbyname(hostname)) == NULL) {
-#ifdef FEATHER_DEBUG 
-        printf("ERROR: The hostname could not be resolved (1)\n");
-#endif
+        FEATHER_DBG_PRINT("ERROR: The hostname could not be resolved (1)\n");
         return -1;
     }
  
@@ -39,9 +39,7 @@ int get_ip(char *hostname, char *ip)
         return 0;
     }
      
-#ifdef FEATHER_DEBUG 
-        printf("ERROR: The hostname could not be resolved (2)\n");
-#endif
+    FEATHER_DBG_PRINT("ERROR: The hostname could not be resolved (2)\n");
     return -1;
 }
 
@@ -51,7 +49,7 @@ int get_ip(char *hostname, char *ip)
  *
  * Returns 1 if ip_address is valid and 0 if it is invalid.
  */
-int validate_ip(char *ip_address)
+int validate_ip(const char *ip_address)
 {
     struct sockaddr_in sa;
     if (inet_pton(AF_INET, ip_address, &(sa.sin_addr))) 

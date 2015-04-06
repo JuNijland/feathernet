@@ -8,24 +8,21 @@
 /* set debug mode */
 #define FEATHER_DEBUG
 
-char *build_http_request(char* domainname) {
+char *build_http_request(const char *domainname) {
     /* very basic http request */
     char *query = "GET %s HTTP/1.0\r\n\r\n";
+    /* strlen(query) -1 to discard the %s */
     char *result = malloc(strlen(domainname) + strlen(query)-1);
     /* complete the query with the domainname */
     sprintf(result, query, domainname);
     return result;
 }
 
-int get_content_length(char *header) {
-    char *tmp;
-    /* get the content length of the html page from the header */
-    tmp = strstr(header, "Content-Length") + 16;
-    int cnt = 0;
-    while (tmp[cnt] >= '0' && tmp[cnt] <= '9') {
-        ++cnt; 
-    } 
-    memcpy(tmp, tmp, cnt);
+int get_content_length(const char *header) {
+    /* get the content length of the html page from the header.
+     * The length of the html doc starts 16 chars behind the string 
+     * "Content-Length" hence the '+ 16' */
+    char *tmp = strstr(header, "Content-Length") + 16;
     return atoi(tmp);
 }
 
@@ -78,7 +75,6 @@ int main(int argc, char **argv) {
         printf("%s", buf);
     }
 
-    /* close the socket */
     close_sock(sock);
     free(query);
     return 0;

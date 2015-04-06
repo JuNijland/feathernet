@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include "transmit.h"
+#include "debug.h"
 
 #ifndef IPPROTO_TCP
 #define IPPROTO_TCP 0	
@@ -28,9 +29,9 @@
  * 
  * Returns the socket integer that you need as
  * a parameter to send and/or receive data
- * from the targeted server.
+ * from the targeted server, or -1 on error.
  */
-int create_sock(char* ip_address, int port) 
+int create_sock(const char* ip_address, int port) 
 {
 	int sock;
 	struct sockaddr_in serversock;
@@ -38,18 +39,15 @@ int create_sock(char* ip_address, int port)
 	WSADATA wsa;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to initialize Winsock2; err_code:%d\n", WSAGetLastError());
-#endif
+		FEAHTER_DBG_PRINT(("ERROR: Failed to initialize Winsock2;"
+                    "err_code:%d\n", WSAGetLastError()));
 		return -1;
 	}
 #endif
 	sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	if (sock < 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to create a socket\n");
-#endif
+		FEATHER_DBG_PRINT("ERROR: Failed to create a socket\n");
 		return -1;
 	}
 
@@ -60,10 +58,8 @@ int create_sock(char* ip_address, int port)
     int connected = 
         connect(sock, (struct sockaddr *) &serversock, sizeof(serversock));
 	if (connected < 0) {	
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to connect with server %s:%d\n", 
-				ip_address, port);
-#endif
+		FEATHER_DBG_PRINT(("ERROR: Failed to connect with server %s:%d\n", 
+				ip_address, port));
 		return -1;
 	}
 	return sock;

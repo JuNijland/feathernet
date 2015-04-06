@@ -15,6 +15,7 @@
 
 #include <stdio.h>
 #include "transmit.h"
+#include "debug.h"
 
 #ifndef IPPROTO_TCP
 #define IPPROTO_TCP 0	
@@ -26,7 +27,7 @@
  * 
  * Returns the socket integer that you need as
  * a parameter to send and/or receive data
- * to/from one or several clients.
+ * to/from one or several clients, or -1 on error.
  */
 int create_serversock(int port) 
 {
@@ -36,18 +37,14 @@ int create_serversock(int port)
 	WSADATA wsa;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to initialize Winsock2; err_code: %d\n",
-					 WSAGetLastError());
-#endif
+		FEATHER_DBG_PRINT(("ERROR: Failed to initialize Winsock2;"
+                "err_code: %d\n", WSAGetLastError()));
 		return -1;
 	}
 #endif
 	serversock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (serversock < 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to create a socket\n");
-#endif
+		FEATHER_DBG_PRINT("ERROR: Failed to create a socket\n");
 		return -1;
 	}
 
@@ -60,9 +57,7 @@ int create_serversock(int port)
         bind(serversock, (struct sockaddr *) &server, sizeof(server));
 
 	if (bindsocket < 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to bind a socket.\n");
-#endif
+		FEATHER_DBG_PRINT("ERROR: Failed to bind a socket.\n");
 		return -1;
 	}
 	return serversock;
@@ -74,8 +69,8 @@ int create_serversock(int port)
  * @max_clients: The maximum amount of pending clients
  * @client_ip: A character array to store the ip from the client
  *
- * Returns the socket int of the client. This can be used
- * with send_data and receive_data to communicate with the
+ * Returns the socket int of the client or -1 on error. This can
+ * be used with send_data and receive_data to communicate with the
  * client
  */
 int listen_serversock(int serversock, int max_clients, char *client_ip)
@@ -86,17 +81,13 @@ int listen_serversock(int serversock, int max_clients, char *client_ip)
     memset(&client, '\0', clientlen);
 
 	if (listen(serversock, max_clients) < 0) {
-#ifdef FEATHER_DEBUG
-		printf("ERROR: Failed to listen on serversocket\n");
-#endif
+		FEATHER_DBG_PRINT("ERROR: Failed to listen on serversocket\n");
 		return -1;
 	}
     clientsock = accept(serversock, (struct sockaddr *) &client, &clientlen);
 	if (clientsock < 0) 
     {
-#ifdef FEATHER_DEBUG
-        printf("ERROR: Failed to accept client connection.\n");
-#endif
+        FEATHER_DBG_PRINT("ERROR: Failed to accept client connection.\n");
         return -1;
     }
 	strcpy(client_ip, inet_ntoa(client.sin_addr));

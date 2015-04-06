@@ -2,12 +2,23 @@
 #define FEATHERNET_H
 
 /**
+ * create_sock - Create a socket connection
+ * @ip_address: The server's ip-address
+ * @port: The port of the socket
+ * 
+ * Returns the socket integer that you need as
+ * a parameter to send and/or receive data
+ * from the targeted server, or -1 on error.
+ */
+int create_sock(char* ip_address, int port);
+
+/**
  * create_serversock - Create a server socket connection
  * @port: The port of the socket to listen on
  * 
  * Returns the socket integer that you need as
  * a parameter to send and/or receive data
- * to/from one or several clients.
+ * to/from one or several clients, or -1 on error.
  */
 int create_serversock(int port);
 
@@ -17,26 +28,17 @@ int create_serversock(int port);
  * @max_clients: The maximum amount of pending clients
  * @client_ip: A character array to store the ip from the client
  *
- * Returns the socket int of the client. This can be used
- * with send_data and receive_data to communicate with the
+ * Returns the socket int of the client or -1 on error. This can
+ * be used with send_data and receive_data to communicate with the
  * client
  */
 int listen_serversock(int serversock, int max_clients, char *client_ip);
 
 /**
- * create_sock - Create a socket connection
- * @ip_address: The server's ip-address
- * @port: The port of the socket
- * 
- * Returns the socket integer that you need as
- * a parameter to send and/or receive data
- * from the targeted server.
- */
-int create_sock(char* ip_address, int port);
-
-/**
  * close_sock - Removes the socket connection
  * @sock - Socket to delete
+ *
+ * Returns 0 on succes or -1 on failure
  */
 int close_sock(int sock);
 

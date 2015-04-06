@@ -8,9 +8,13 @@
 	#define OS_WINDOWS
 #endif
 
+#include "debug.h"
+
 /**
- * delete_sock - Removes the socket connection
+ * close_sock - Removes the socket connection
  * @sock - Socket to delete
+ *
+ * Returns 0 on succes or -1 on failure
  */
 int close_sock(int sock)
 {
@@ -20,9 +24,7 @@ int close_sock(int sock)
 #endif
 #ifdef OS_UNIX
 	if (close(sock) < 0) {
-#ifdef FEATHER_DEBUG
-        printf("ERROR: An error occured while closing a socket\n");
-#endif
+        FEATHER_DBG_PRINT("ERROR: An error occured while closing a socket\n");
         return -1;
     }
 #endif
